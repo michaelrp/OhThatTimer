@@ -1,74 +1,73 @@
 ﻿@page "/"
 @using System.Timers
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
-
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Solve</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" @onclick="() => CloseAsync()"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <h1 class="display-3">@solveResult</h1>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <button type="button" class="btn @(isRunning ? "btn-danger" : "btn-primary")" @onclick="StartStop">
-                        @if(isRunning)
-                        {
-                            <span class="oi oi-media-stop"></span>@(" Stop")
-                        }
-                        else
-                        {
-                            <span class="oi oi-media-play"></span>@(" Start")
-                        }
-                    </button>
-                    <button type="button" class="btn btn-secondary" @onclick="Reset">
-                        <span class="oi oi-reload"></span> Reset
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" disabled="@(isRunning)" data-dismiss="modal" @onclick="() => CloseAsync(true)">
-                    <span class="oi oi-check"></span> OK
-                </button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => CloseAsync()">
-                    <span class="oi oi-x"></span> Cancel
-                </button>
-            </div>
-        </div>
+<div class="card text-center" style="width: 18rem;">
+  <div class="card-header">
+    Oh That Timer!
+  </div>
+  <div class="card-body">
+    <div class="text-center">
+        <h1 class="display-3">@_currentTime</h1>
     </div>
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn @(_isRunning ? "btn-danger" : "btn-primary")" @onclick="StartStop">
+            @if(_isRunning)
+            {
+                <span class="oi oi-media-stop"></span>@(" Stop")
+            }
+            else
+            {
+                <span class="oi oi-media-play"></span>@(" Start")
+            }
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="Reset">
+            <span class="oi oi-reload"></span> Reset
+        </button>
+    </div>
+  </div>
+  <div class="card-footer text-muted">
+        <button type="button" class="btn btn-secondary" disabled="@(_isRunning)" @onclick="ReverseDirection">
+            <span class="oi @_directionClass"></span> @_directionLabel
+        </button>
+  </div>
+</div>
 
 @code {
-    private string solveResult;
-    Timer timer;
-    DateTime startTime;
-    TimeSpan savedTime;
-    TimeSpan differenceTime;
-    bool isRunning;
+    private string _currentTime;
+    Timer _timer;
+    DateTime _startTime;
+    TimeSpan _savedTime;
+    TimeSpan _differenceTime;
+    bool _isRunning;
+    string _directionLabel = "Count Up";
+    string _directionClass = "oi-arrow-top";
 
     protected override async Task OnInitializedAsync()
     {
         var result = "0.00";
 
-        solveResult = string.IsNullOrEmpty(result) ? "0.00" : result;
+        _currentTime = string.IsNullOrEmpty(result) ? "0.00" : result;
 
-        isRunning = false;
-        timer = new Timer(10);
-        timer.Elapsed += async (sender, e) => await TimerTick(sender, e);
-        savedTime = GetTimeSpanFromResult(solveResult);
-        differenceTime = new TimeSpan();
-        
-        @* StateHasChanged(); *@
+        _isRunning = false;
+        _timer = new Timer(10);
+        _timer.Elapsed += async (sender, e) => await TimerTick(sender, e);
+        _savedTime = GetTimeSpanFromResult(_currentTime);
+        _differenceTime = new TimeSpan();
     }
 
-    public async Task CloseAsync(bool update = false)
+    public void ReverseDirection()
     {
-        timer.Stop();
-
+        if (_directionLabel == "Count Up")
+        {
+            _directionLabel = "Count Down";
+            _directionClass = "oi-arrow-bottom";
+        }
+        else
+        {
+            _directionLabel = "Count Up";
+            _directionClass = "oi-arrow-top";
+        }
     }
 
     private TimeSpan GetTimeSpanFromResult(string result)
@@ -101,10 +100,10 @@ Welcome to your new app.
     private async Task TimerTick(object sender, ElapsedEventArgs e)
     {
         var updatedTime = DateTime.Now;
-        differenceTime = (updatedTime - startTime) + savedTime;
-        var format = differenceTime.Minutes < 1 ? @"%s\.ff" : @"%m\:ss\.ff";
+        _differenceTime = (updatedTime - _startTime) + _savedTime;
+        var format = _differenceTime.Minutes < 1 ? @"%s\.ff" : @"%m\:ss\.ff";
 
-        solveResult = differenceTime.ToString(format);
+        _currentTime = _differenceTime.ToString(format);
 
         this.StateHasChanged();
         await Task.CompletedTask;
@@ -112,26 +111,26 @@ Welcome to your new app.
 
     private void StartStop()
     {
-        if(isRunning)
+        if(_isRunning)
         {
-            timer.Stop();
-            savedTime = differenceTime;
-            isRunning = false;
+            _timer.Stop();
+            _savedTime = _differenceTime;
+            _isRunning = false;
         }
         else
         {
-            startTime = DateTime.Now;
-            timer.Start();
-            isRunning = true;
+            _startTime = DateTime.Now;
+            _timer.Start();
+            _isRunning = true;
         }
     }
 
     private void Reset()
     {
-        timer.Stop();
-        savedTime = new TimeSpan();
-        differenceTime = new TimeSpan();
-        isRunning = false;
-        solveResult = "0.00";
+        _timer.Stop();
+        _savedTime = new TimeSpan();
+        _differenceTime = new TimeSpan();
+        _isRunning = false;
+        _currentTime = "0.00";
     }
 }
