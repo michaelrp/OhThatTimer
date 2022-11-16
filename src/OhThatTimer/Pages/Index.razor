@@ -2,15 +2,17 @@
 @using System.Timers
 @using OhThatTimer.Utils
 
-<div class="card text-center" style="width: 18rem;">
-    <div class="card-header">
-        Oh <i>That</i> Timer
-    </div>
+<h1>
+    Oh <i>That</i> Timer
+</h1>
+
+<div class="card" style="width: 18rem;">
     <div class="card-body">
         <div class="text-center">
             @if (_showInput)
             {
-                <input type="text" class="form-control form-control-lg time-entry" pattern="[0-9]*" value="@_currentTime" @oninput="@(e => TimeInput(e))">
+                <input type="text" class="form-control form-control-lg time-entry" pattern="[0-9]*" value="@_currentTime"
+                @oninput="@(e => TimeInput(e))">
             }
             else
             {
@@ -33,11 +35,11 @@
             </button>
         </div>
     </div>
-    <div class="card-footer text-muted">
+    @* <div class="card-footer text-muted">
         <button type="button" class="btn btn-secondary" disabled="@(_isRunning)" @onclick="ReverseDirection">
             <span class="oi @_directionClass"></span> @_directionLabel
         </button>
-    </div>
+    </div> *@
 </div>
 
 @code {
@@ -62,9 +64,12 @@
         _differenceTime = new TimeSpan();
     }
 
+    private bool IsCountingUp()
+    => _directionLabel == "Count Up";
+
     public void ReverseDirection()
     {
-        if (_directionLabel == "Count Up")
+        if (IsCountingUp())
         {
             _directionLabel = "Count Down";
             _directionClass = "oi-arrow-bottom";
@@ -119,7 +124,15 @@
     private async Task TimerTick(object? sender, ElapsedEventArgs e)
     {
         var updatedTime = DateTime.Now;
-        _differenceTime = (updatedTime - _startTime) + _savedTime;
+
+        if (IsCountingUp())
+        {
+            _differenceTime = (updatedTime - _startTime) + _savedTime;
+        }
+        @* else
+        {
+        } *@
+
         var format = _differenceTime.Hours < 1 ? @"m\:ss" : @"h\:mm\:ss";
         _currentTime = _differenceTime.ToString(format);
 
